@@ -1,4 +1,4 @@
-package com.utilityapplication.ui.screens.randomtools
+package com.utilityapplication.com.screens.randomtools
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*

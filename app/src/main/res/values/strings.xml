@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Utility Application</string>
+    <string name="age_calculator_title">Age Calculator</string>
 </resources>
