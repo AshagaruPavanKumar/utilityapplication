@@ -1,6 +1,5 @@
-package com.utilityapplication.ui.screens.agecalculator
+package com.utilityapplication.com.feature.everday.pres.ui.scr
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -15,14 +14,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import java.time.LocalDate
-import java.time.Period
-import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AgeCalculatorScreen() {
+fun AgeCalculatorScreen(onBackClick: () -> Unit = {}) {
     var dateOfBirth by remember { mutableStateOf("05/15/1996") }
     var todayDate by remember { mutableStateOf("11/20/2024") }
     var showResult by remember { mutableStateOf(false) }
@@ -38,7 +33,7 @@ fun AgeCalculatorScreen() {
             TopAppBar(
                 title = { Text("Age Calculator", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton(onClick = { /* TODO: Go back */ }) {
+                    IconButton(onClick = onBackClick) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },

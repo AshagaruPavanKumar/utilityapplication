@@ -1,4 +1,4 @@
-package com.utilityapplication.ui.screens.finance
+package com.utilityapplication.com.screens.finance
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn

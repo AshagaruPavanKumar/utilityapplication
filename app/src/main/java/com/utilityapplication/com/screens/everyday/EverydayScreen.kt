@@ -1,4 +1,4 @@
-package com.utilityapplication.ui.screens.everyday
+package com.utilityapplication.com.screens.everyday
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
