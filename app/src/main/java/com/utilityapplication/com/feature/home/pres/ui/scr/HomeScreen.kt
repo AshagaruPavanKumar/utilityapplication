@@ -24,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.utilityapplication.com.feature.everday.pres.ui.act.AgeCalculatorActivity
+import com.utilityapplication.com.feature.everday.pres.ui.act.UnitConverterActivity
 import com.utilityapplication.com.theme.UtilityKitTheme
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -53,7 +54,7 @@ import com.utilityapplication.com.theme.UtilityKitTheme
             HomeContent(modifier = Modifier.padding(innerPadding),
                 onEverydayClick = {
                     context.startActivity(
-                        Intent(context, AgeCalculatorActivity::class.java)
+                        Intent(context, UnitConverterActivity::class.java)
                     )
                 })
         }
@@ -67,7 +68,7 @@ import com.utilityapplication.com.theme.UtilityKitTheme
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
         ) {
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(12.     dp))
 
             // Greeting
             Text(
