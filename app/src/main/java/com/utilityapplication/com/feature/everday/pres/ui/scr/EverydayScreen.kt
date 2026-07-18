@@ -1,4 +1,4 @@
-package com.utilityapplication.com.screens.everyday
+package com.utilityapplication.com.feature.everday.pres.ui.scr
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -26,16 +26,18 @@ data class DailyTool(
     val iconTint: Color,
     val backgroundColor: Color
 )
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EverydayScreen() {
+fun EverydayScreen(
+    onBackClick: () -> Unit = {},
+    onToolClick: (String) -> Unit = {}   // ← Added
+) {
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Everyday", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton(onClick = { /* TODO: Navigate back */ }) {
+                    IconButton(onClick = onBackClick) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
@@ -54,7 +56,7 @@ fun EverydayScreen() {
                 .fillMaxSize()
                 .background(Color(0xFFF8F9FA))
         ) {
-            // Header Card
+            // Header Card (unchanged)
             item {
                 Card(
                     modifier = Modifier
@@ -80,9 +82,12 @@ fun EverydayScreen() {
                 }
             }
 
-            // List Items
+            // List Items with Click
             items(getDailyTools()) { tool ->
-                ToolListItem(tool = tool)
+                ToolListItem(
+                    tool = tool,
+                    onClick = { onToolClick(tool.title) }
+                )
             }
 
             // Request New Tool Button
@@ -93,9 +98,7 @@ fun EverydayScreen() {
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 24.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = Color(0xFF1976D2)
-                    )
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF1976D2))
                 ) {
                     Icon(Icons.Default.Add, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
@@ -106,15 +109,17 @@ fun EverydayScreen() {
     }
 }
 
+// Updated ToolListItem with click support
 @Composable
-fun ToolListItem(tool: DailyTool) {
+fun ToolListItem(tool: DailyTool, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        onClick = onClick   // ← Clickable
     ) {
         Row(
             modifier = Modifier
@@ -122,7 +127,6 @@ fun ToolListItem(tool: DailyTool) {
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icon
             Box(
                 modifier = Modifier
                     .size(48.dp)
@@ -140,7 +144,6 @@ fun ToolListItem(tool: DailyTool) {
 
             Spacer(Modifier.width(16.dp))
 
-            // Title + Description
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = tool.title,
