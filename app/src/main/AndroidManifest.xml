@@ -12,9 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.UtilityApplication"
         tools:targetApi="31">
-        <activity
-            android:name=".com.feature.everday.pres.ui.act.RandomToolsActivity"
-            android:exported="false" />
+
         <activity
             android:name=".com.feature.home.pres.ui.act.MainActivity"
             android:exported="true"
@@ -28,8 +26,14 @@
         </activity>
         <activity
             android:name=".com.feature.everday.pres.ui.act.UnitConverterActivity"
+            android:name="com.utilityapplication.com.feature.everday.pres.ui.act.UnitConverterActivity"
             android:exported="false"
             android:label="@string/unit_converter_title"
+            android:theme="@style/Theme.UtilityApplication" />
+        <activity
+            android:name="com.utilityapplication.com.feature.everday.pres.ui.act.RandomToolsActivity"
+            android:exported="false"
+            android:label="@string/random_tool_title"
             android:theme="@style/Theme.UtilityApplication" />
         <activity
             android:name=".com.feature.everday.pres.ui.act.AgeCalculatorActivity"

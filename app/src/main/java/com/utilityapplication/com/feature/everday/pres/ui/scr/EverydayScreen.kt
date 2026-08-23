@@ -88,22 +88,7 @@ fun EverydayScreen(onBackClick: () -> Unit = {}) {
 
             // List Items
             items(getDailyTools()) { tool ->
-                ToolListItem(
-                    tool = tool,
-                    onClick = {
-                        when (tool.title) {
-                            "Age Calculator" -> context.startActivity(
-                                Intent(context, AgeCalculatorActivity::class.java)
-                            )
-                            "Unit Converter" -> context.startActivity(
-                                Intent(context, UnitConverterActivity::class.java)
-                            )
-                            "Random Tools" -> context.startActivity(
-                                Intent(context, RandomToolsActivity::class.java)
-                            )
-                        }
-                    }
-                )
+                ToolListItem(tool = tool)
             }
 
             // Request New Tool Button
@@ -128,7 +113,7 @@ fun EverydayScreen(onBackClick: () -> Unit = {}) {
 }
 
 @Composable
-fun ToolListItem(tool: DailyTool, onClick: () -> Unit = {}) {
+fun ToolListItem(tool: DailyTool) {
     Card(
         onClick = onClick,
         modifier = Modifier

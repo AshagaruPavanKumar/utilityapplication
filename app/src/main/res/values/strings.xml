@@ -1,5 +1,8 @@
 <resources>
     <string name="app_name">Utility Application</string>
     <string name="age_calculator_title">Age Calculator</string>
+    <string name="random_tool_title">Random tool</string>
     <string name="unit_converter_title">Unit Converter</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
