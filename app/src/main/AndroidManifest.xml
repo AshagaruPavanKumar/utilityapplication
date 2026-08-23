@@ -27,11 +27,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.utilityapplication.com.feature.everday.pres.ui.act.UnitConverterActivity"
-            android:exported="false"
-            android:label="@string/unit_converter_title"
-            android:theme="@style/Theme.UtilityApplication" />
-        <activity
             android:name=".com.feature.everday.pres.ui.act.UnitConverterActivity"
             android:exported="false"
             android:label="@string/unit_converter_title"

@@ -14,7 +14,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import com.utilityapplication.com.navigation.AppBottomBar
+import com.utilityapplication.com.navigation.MainNavigator
+import com.utilityapplication.com.navigation.Routes
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -22,6 +26,7 @@ import androidx.compose.ui.unit.sp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UnitConverterScreen(onBackClick: () -> Unit = {}) {
+    val context = LocalContext.current
     var selectedCategory by remember { mutableStateOf("Length") }
     var fromUnit by remember { mutableStateOf("Meters") }
     var toUnit by remember { mutableStateOf("Feet") }
@@ -60,7 +65,15 @@ fun UnitConverterScreen(onBackClick: () -> Unit = {}) {
                 }
             )
         },
-        bottomBar = { UnitConverterBottomNav() }
+        bottomBar = {
+            AppBottomBar(
+                currentRoute = Routes.EVERYDAY,
+                onTabSelected = { route ->
+                    if (route == Routes.EVERYDAY) onBackClick()
+                    else MainNavigator.openTab(context, route)
+                }
+            )
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -328,18 +341,6 @@ private fun convertTemperature(value: Double, from: String, to: String): Double 
         "Fahrenheit" -> celsius * 9 / 5 + 32
         "Kelvin" -> celsius + 273.15
         else -> celsius
-    }
-}
-
-// Bottom Navigation (unchanged)
-@Composable
-fun UnitConverterBottomNav() {
-    NavigationBar {
-        NavigationBarItem(selected = false, onClick = {}, icon = { Icon(Icons.Default.Home, null) }, label = { Text("Home") })
-        NavigationBarItem(selected = true, onClick = {}, icon = { Icon(Icons.Default.GridView, null) }, label = { Text("Everyday") })
-        NavigationBarItem(selected = false, onClick = {}, icon = { Icon(Icons.Default.ShowChart, null) }, label = { Text("Finance") })
-        NavigationBarItem(selected = false, onClick = {}, icon = { Icon(Icons.Default.Warning, null) }, label = { Text("Emergency") })
-        NavigationBarItem(selected = false, onClick = {}, icon = { Icon(Icons.Default.Apps, null) }, label = { Text("Quick Tools") })
     }
 }
 

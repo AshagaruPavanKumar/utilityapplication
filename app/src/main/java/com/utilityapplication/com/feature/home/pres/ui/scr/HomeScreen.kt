@@ -23,16 +23,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.utilityapplication.com.feature.everday.pres.ui.act.AgeCalculatorActivity
 import com.utilityapplication.com.feature.everday.pres.ui.act.RandomToolsActivity
 import com.utilityapplication.com.feature.everday.pres.ui.act.UnitConverterActivity
 import com.utilityapplication.com.theme.UtilityKitTheme
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun UtilityKitHomeScreen() {
-        val context = LocalContext.current
-
+    fun UtilityKitHomeScreen(
+        onEverydayClick: () -> Unit = {},
+        onFinanceClick: () -> Unit = {},
+        onEmergencyClick: () -> Unit = {},
+        onQuickToolsClick: () -> Unit = {}
+    ) {
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -49,21 +51,27 @@ import com.utilityapplication.com.theme.UtilityKitTheme
                         }
                     }
                 )
-            },
-            bottomBar = { UtilityBottomNavigation() }
+            }
         ) { innerPadding ->
-            HomeContent(modifier = Modifier.padding(innerPadding),
-                onEverydayClick = {
-                    context.startActivity(
-                        Intent(context, RandomToolsActivity::class.java)
-                    )
-                })
+            HomeContent(
+                modifier = Modifier.padding(innerPadding),
+                onEverydayClick = onEverydayClick,
+                onFinanceClick = onFinanceClick,
+                onEmergencyClick = onEmergencyClick,
+                onQuickToolsClick = onQuickToolsClick
+            )
         }
     }
 
     @Composable
-    fun HomeContent(modifier: Modifier = Modifier,
-                    onEverydayClick: () -> Unit = {}   ) {
+    fun HomeContent(
+        modifier: Modifier = Modifier,
+        onEverydayClick: () -> Unit = {},
+        onFinanceClick: () -> Unit = {},
+        onEmergencyClick: () -> Unit = {},
+        onQuickToolsClick: () -> Unit = {}
+    ) {
+        val context = LocalContext.current
         Column(
             modifier = modifier
                 .verticalScroll(rememberScrollState())
@@ -103,7 +111,8 @@ import com.utilityapplication.com.theme.UtilityKitTheme
                     icon = Icons.Default.ShowChart,
                     iconTint = Color(0xFF388E3C),
                     containerColor = Color(0xFFC8E6C9),
-                    modifier = Modifier.weight(1f).height(140.dp)
+                    modifier = Modifier.weight(1f).height(140.dp),
+                    onClick = onFinanceClick
                 )
             }
 
@@ -120,14 +129,16 @@ import com.utilityapplication.com.theme.UtilityKitTheme
                     iconTint = Color(0xFFD32F2F),
                     containerColor = Color(0xFFFFCDD2),
                     badge = "Always Free",
-                    modifier = Modifier.weight(1f).height(140.dp)
+                    modifier = Modifier.weight(1f).height(140.dp),
+                    onClick = onEmergencyClick
                 )
                 CategoryCard(
                     title = "Quick Tools",
                     icon = Icons.Default.Apps,
                     iconTint = Color(0xFFF57C00),
                     containerColor = Color(0xFFFFE0B2),
-                    modifier = Modifier.weight(1f).height(140.dp)
+                    modifier = Modifier.weight(1f).height(140.dp),
+                    onClick = onQuickToolsClick
                 )
             }
 
@@ -145,7 +156,19 @@ import com.utilityapplication.com.theme.UtilityKitTheme
 
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(listOf("Unit Converter", "Coin Toss", "Ruler", "Level")) { item ->
-                    RecentChip(text = item)
+                    RecentChip(
+                        text = item,
+                        onClick = {
+                            when (item) {
+                                "Unit Converter" -> context.startActivity(
+                                    Intent(context, UnitConverterActivity::class.java)
+                                )
+                                "Coin Toss" -> context.startActivity(
+                                    Intent(context, RandomToolsActivity::class.java)
+                                )
+                            }
+                        }
+                    )
                 }
             }
 
@@ -299,42 +322,6 @@ import com.utilityapplication.com.theme.UtilityKitTheme
                 text = text,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 9.dp),
                 fontSize = 14.sp
-            )
-        }
-    }
-
-    @Composable
-    fun UtilityBottomNavigation() {
-        NavigationBar {
-            NavigationBarItem(
-                selected = true,
-                onClick = { },
-                icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                label = { Text("Home", fontSize = 10.sp) }
-            )
-            NavigationBarItem(
-                selected = false,
-                onClick = { },
-                icon = { Icon(Icons.Default.GridView, contentDescription = "Everyday") },
-                label = { Text("Everyday", fontSize = 10.sp) }
-            )
-            NavigationBarItem(
-                selected = false,
-                onClick = { },
-                icon = { Icon(Icons.Default.ShowChart, contentDescription = "Finance") },
-                label = { Text("Finance", fontSize = 10.sp) }
-            )
-            NavigationBarItem(
-                selected = false,
-                onClick = { },
-                icon = { Icon(Icons.Default.Warning, contentDescription = "Emergency") },
-                label = { Text("Emergency", fontSize = 10.sp) }
-            )
-            NavigationBarItem(
-                selected = false,
-                onClick = { },
-                icon = { Icon(Icons.Default.Apps, contentDescription = "Quick Tools") },
-                label = { Text("Quick Tools", fontSize = 10.sp) }
             )
         }
     }

@@ -1,4 +1,4 @@
-package com.utilityapplication.com.screens.everyday
+package com.utilityapplication.com.feature.everday.pres.ui.scr
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -9,15 +9,20 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import android.content.Intent
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.utilityapplication.com.feature.everday.pres.ui.act.AgeCalculatorActivity
+import com.utilityapplication.com.feature.everday.pres.ui.act.RandomToolsActivity
+import com.utilityapplication.com.feature.everday.pres.ui.act.UnitConverterActivity
 
 data class DailyTool(
     val title: String,
@@ -29,13 +34,15 @@ data class DailyTool(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EverydayScreen() {
+fun EverydayScreen(onBackClick: () -> Unit = {}) {
+    val context = LocalContext.current
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Everyday", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton(onClick = { /* TODO: Navigate back */ }) {
+                    IconButton(onClick = onBackClick) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
@@ -45,8 +52,7 @@ fun EverydayScreen() {
                     }
                 }
             )
-        },
-        bottomBar = { EverydayBottomNavigation() }
+        }
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
@@ -82,7 +88,22 @@ fun EverydayScreen() {
 
             // List Items
             items(getDailyTools()) { tool ->
-                ToolListItem(tool = tool)
+                ToolListItem(
+                    tool = tool,
+                    onClick = {
+                        when (tool.title) {
+                            "Age Calculator" -> context.startActivity(
+                                Intent(context, AgeCalculatorActivity::class.java)
+                            )
+                            "Unit Converter" -> context.startActivity(
+                                Intent(context, UnitConverterActivity::class.java)
+                            )
+                            "Random Tools" -> context.startActivity(
+                                Intent(context, RandomToolsActivity::class.java)
+                            )
+                        }
+                    }
+                )
             }
 
             // Request New Tool Button
@@ -107,8 +128,9 @@ fun EverydayScreen() {
 }
 
 @Composable
-fun ToolListItem(tool: DailyTool) {
+fun ToolListItem(tool: DailyTool, onClick: () -> Unit = {}) {
     Card(
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp),
@@ -194,42 +216,6 @@ fun getDailyTools(): List<DailyTool> {
             backgroundColor = Color(0xFFFFEBEE)
         )
     )
-}
-
-@Composable
-fun EverydayBottomNavigation() {
-    NavigationBar {
-        NavigationBarItem(
-            selected = false,
-            onClick = { /* TODO */ },
-            icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-            label = { Text("Home") }
-        )
-        NavigationBarItem(
-            selected = true,
-            onClick = { /* TODO */ },
-            icon = { Icon(Icons.Default.GridView, contentDescription = "Everyday") },
-            label = { Text("Everyday") }
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = { /* TODO */ },
-            icon = { Icon(Icons.Default.ShowChart, contentDescription = "Finance") },
-            label = { Text("Finance") }
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = { /* TODO */ },
-            icon = { Icon(Icons.Default.Warning, contentDescription = "Emergency") },
-            label = { Text("Emergency") }
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = { /* TODO */ },
-            icon = { Icon(Icons.Default.Apps, contentDescription = "Quick Tools") },
-            label = { Text("Quick Tools") }
-        )
-    }
 }
 
 @Preview(showBackground = true, showSystemUi = true)

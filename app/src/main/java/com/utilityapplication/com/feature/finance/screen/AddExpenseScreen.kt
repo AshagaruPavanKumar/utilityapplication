@@ -1,7 +1,9 @@
-package com.utilityapplication.com.screens.finance
+package com.utilityapplication.com.feature.finance.screen
 
+import android.app.DatePickerDialog
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -9,34 +11,55 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.utilityapplication.com.feature.finance.data.AppDatabase
+import com.utilityapplication.com.feature.finance.data.FinanceRepository
+import com.utilityapplication.com.feature.finance.pres.vm.AddExpenseViewModel
+import java.text.SimpleDateFormat
+import java.util.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddExpenseScreen() {
+fun AddExpenseScreen(
+    onBack: () -> Unit = {},
+    onSaveSuccess: () -> Unit = {}
+) {
+    val context = LocalContext.current
+    val database = remember { AppDatabase.getDatabase(context) }
+    val repository = remember { FinanceRepository(database) }
+
+    val viewModel: AddExpenseViewModel = viewModel(
+        factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return AddExpenseViewModel(repository) as T
+            }
+        }
+    )
+
+    var amount by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("Food") }
     var notes by remember { mutableStateOf("") }
+    var selectedDate by remember { mutableStateOf(System.currentTimeMillis()) }
+
+    val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Add Expense", fontWeight = FontWeight.SemiBold) },
                 navigationIcon = {
-                    IconButton(onClick = { /* TODO: Close */ }) {
+                    IconButton(onClick = onBack) {
                         Icon(Icons.Default.Close, contentDescription = "Close")
-                    }
-                },
-                actions = {
-                    TextButton(onClick = { /* TODO: Save */ }) {
-                        Text(
-                            "Save",
-                            color = Color(0xFF1976D2),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp
-                        )
                     }
                 }
             )
@@ -59,11 +82,21 @@ fun AddExpenseScreen() {
             )
             Spacer(Modifier.height(8.dp))
 
-            Text(
-                "₹0.00",
-                fontSize = 42.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF1976D2)
+            OutlinedTextField(
+                value = amount,
+                onValueChange = { amount = it },
+                placeholder = { Text("0.00") },
+                modifier = Modifier.fillMaxWidth(),
+                textStyle = LocalTextStyle.current.copy(
+                    fontSize = 42.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1976D2)
+                ),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                singleLine = true,
+                leadingIcon = {
+                    Text("₹", fontSize = 36.sp, color = Color(0xFF1976D2))
+                }
             )
 
             Spacer(Modifier.height(24.dp))
@@ -78,24 +111,18 @@ fun AddExpenseScreen() {
             Spacer(Modifier.height(12.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                CategoryChip(
-                    text = "Food",
-                    icon = Icons.Default.Restaurant,
-                    isSelected = selectedCategory == "Food",
-                    onClick = { selectedCategory = "Food" }
-                )
-                CategoryChip(
-                    text = "Travel",
-                    icon = Icons.Default.Flight,
-                    isSelected = selectedCategory == "Travel",
-                    onClick = { selectedCategory = "Travel" }
-                )
-                CategoryChip(
-                    text = "Shopping",
-                    icon = Icons.Default.ShoppingBag,
-                    isSelected = selectedCategory == "Shopping",
-                    onClick = { selectedCategory = "Shopping" }
-                )
+                viewModel.categories.take(3).forEach { category ->
+                    CategoryChip(
+                        text = category,
+                        icon = when (category) {
+                            "Food" -> Icons.Default.Restaurant
+                            "Travel" -> Icons.Default.Flight
+                            else -> Icons.Default.ShoppingBag
+                        },
+                        isSelected = selectedCategory == category,
+                        onClick = { selectedCategory = category }
+                    )
+                }
             }
 
             Spacer(Modifier.height(24.dp))
@@ -110,15 +137,29 @@ fun AddExpenseScreen() {
             Spacer(Modifier.height(8.dp))
 
             OutlinedTextField(
-                value = "Today, 14 Jun 2026",
+                value = "Today, ${dateFormatter.format(Date(selectedDate))}",
                 onValueChange = {},
                 readOnly = true,
                 modifier = Modifier.fillMaxWidth(),
                 trailingIcon = {
-                    Icon(Icons.Default.ArrowForwardIos, contentDescription = null, tint = Color.Gray)
-                },
-                leadingIcon = {
-                    Icon(Icons.Default.CalendarToday, contentDescription = null)
+                    IconButton(onClick = {
+                        val calendar = Calendar.getInstance()
+                        calendar.timeInMillis = selectedDate
+
+                        DatePickerDialog(
+                            context,
+                            { _, year, month, dayOfMonth ->
+                                val newCalendar = Calendar.getInstance()
+                                newCalendar.set(year, month, dayOfMonth)
+                                selectedDate = newCalendar.timeInMillis
+                            },
+                            calendar.get(Calendar.YEAR),
+                            calendar.get(Calendar.MONTH),
+                            calendar.get(Calendar.DAY_OF_MONTH)
+                        ).show()
+                    }) {
+                        Icon(Icons.Default.CalendarToday, contentDescription = null)
+                    }
                 }
             )
 
@@ -180,9 +221,20 @@ fun AddExpenseScreen() {
 
             Spacer(Modifier.height(32.dp))
 
-            // Save Button
+            // SAVE BUTTON
             Button(
-                onClick = { /* TODO: Save Expense */ },
+                onClick = {
+                    val amountValue = amount.toDoubleOrNull() ?: 0.0
+                    if (amountValue > 0) {
+                        viewModel.saveExpense(
+                            amount = amountValue,
+                            category = selectedCategory,
+                            dateMillis = selectedDate,
+                            notes = notes
+                        )
+                        onSaveSuccess()
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(55.dp),
@@ -197,10 +249,11 @@ fun AddExpenseScreen() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryChip(
     text: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
@@ -208,23 +261,24 @@ fun CategoryChip(
         selected = isSelected,
         onClick = onClick,
         label = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(6.dp))
-                Text(text)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 6.dp)
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(text = text)
             }
         },
         colors = FilterChipDefaults.filterChipColors(
             selectedContainerColor = Color(0xFF1976D2),
-            selectedLabelColor = Color.White
+            selectedLabelColor = Color.White,
+            containerColor = Color(0xFFF5F5F5),
+            labelColor = Color.DarkGray
         )
     )
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun AddExpenseScreenPreview() {
-    MaterialTheme {
-        AddExpenseScreen()
-    }
 }

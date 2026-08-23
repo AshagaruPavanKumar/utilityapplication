@@ -14,7 +14,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import com.utilityapplication.com.navigation.AppBottomBar
+import com.utilityapplication.com.navigation.MainNavigator
+import com.utilityapplication.com.navigation.Routes
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -26,6 +30,7 @@ import kotlin.random.Random
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RandomToolsScreen(onBackClick: () -> Unit = {}) {
+    val context = LocalContext.current
     var selectedTab by remember { mutableStateOf("Coin") }
     var coinResult by remember { mutableStateOf("Heads") }
     var isFlipping by remember { mutableStateOf(false) }
@@ -46,7 +51,15 @@ fun RandomToolsScreen(onBackClick: () -> Unit = {}) {
                 }
             )
         },
-        bottomBar = { RandomToolsBottomNav() }
+        bottomBar = {
+            AppBottomBar(
+                currentRoute = Routes.EVERYDAY,
+                onTabSelected = { route ->
+                    if (route == Routes.EVERYDAY) onBackClick()
+                    else MainNavigator.openTab(context, route)
+                }
+            )
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -241,18 +254,6 @@ fun RandomNumberSection(randomNumber: Int, onGenerate: () -> Unit) {
         shape = RoundedCornerShape(16.dp)
     ) {
         Text("Generate New Number (1-100)", fontSize = 16.sp)
-    }
-}
-
-// Bottom Navigation
-@Composable
-fun RandomToolsBottomNav() {
-    NavigationBar {
-        NavigationBarItem(selected = false, onClick = {}, icon = { Icon(Icons.Default.Home, null) }, label = { Text("Home") })
-        NavigationBarItem(selected = true, onClick = {}, icon = { Icon(Icons.Default.GridView, null) }, label = { Text("Everyday") })
-        NavigationBarItem(selected = false, onClick = {}, icon = { Icon(Icons.Default.ShowChart, null) }, label = { Text("Finance") })
-        NavigationBarItem(selected = false, onClick = {}, icon = { Icon(Icons.Default.Warning, null) }, label = { Text("Emergency") })
-        NavigationBarItem(selected = false, onClick = {}, icon = { Icon(Icons.Default.Apps, null) }, label = { Text("Quick Tools") })
     }
 }
 

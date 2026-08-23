@@ -10,7 +10,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import com.utilityapplication.com.navigation.AppBottomBar
+import com.utilityapplication.com.navigation.MainNavigator
+import com.utilityapplication.com.navigation.Routes
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -18,6 +22,7 @@ import androidx.compose.ui.unit.sp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AgeCalculatorScreen(onBackClick: () -> Unit = {}) {
+    val context = LocalContext.current
     var dateOfBirth by remember { mutableStateOf("05/15/1996") }
     var todayDate by remember { mutableStateOf("11/20/2024") }
     var showResult by remember { mutableStateOf(false) }
@@ -44,7 +49,15 @@ fun AgeCalculatorScreen(onBackClick: () -> Unit = {}) {
                 }
             )
         },
-        bottomBar = { AgeCalculatorBottomNav() }
+        bottomBar = {
+            AppBottomBar(
+                currentRoute = Routes.EVERYDAY,
+                onTabSelected = { route ->
+                    if (route == Routes.EVERYDAY) onBackClick()
+                    else MainNavigator.openTab(context, route)
+                }
+            )
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -254,17 +267,6 @@ fun StatCard(
                 color = Color.Gray
             )
         }
-    }
-}
-
-@Composable
-fun AgeCalculatorBottomNav() {
-    NavigationBar {
-        NavigationBarItem(selected = false, onClick = {}, icon = { Icon(Icons.Default.Home, null) }, label = { Text("Home") })
-        NavigationBarItem(selected = true, onClick = {}, icon = { Icon(Icons.Default.GridView, null) }, label = { Text("Everyday") })
-        NavigationBarItem(selected = false, onClick = {}, icon = { Icon(Icons.Default.ShowChart, null) }, label = { Text("Finance") })
-        NavigationBarItem(selected = false, onClick = {}, icon = { Icon(Icons.Default.Warning, null) }, label = { Text("Emergency") })
-        NavigationBarItem(selected = false, onClick = {}, icon = { Icon(Icons.Default.Apps, null) }, label = { Text("Quick Tools") })
     }
 }
 

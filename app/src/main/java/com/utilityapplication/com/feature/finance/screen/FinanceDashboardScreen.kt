@@ -1,4 +1,4 @@
-package com.utilityapplication.com.screens.finance
+package com.utilityapplication.com.feature.finance.screen
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -7,29 +7,62 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.utilityapplication.com.feature.finance.data.AppDatabase
+import com.utilityapplication.com.feature.finance.data.FinanceRepository
+import com.utilityapplication.com.feature.finance.pres.vm.FinanceDashboardViewModel
+import com.utilityapplication.com.navigation.Routes
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FinanceDashboardScreen() {
+fun FinanceDashboardScreen(navController: NavController) {
+
+    val context = LocalContext.current
+    val database = remember { AppDatabase.getDatabase(context) }
+    val repository = remember { FinanceRepository(database) }
+    val viewModel: FinanceDashboardViewModel = viewModel(
+        factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return FinanceDashboardViewModel(repository) as T
+            }
+        }
+    )
+
+    val totalSpent by viewModel.totalSpentThisMonth.collectAsStateWithLifecycle()
+    val recentTransactions by viewModel.recentTransactions.collectAsStateWithLifecycle()
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Finance", fontWeight = FontWeight.Bold) },
                 actions = {
-                    IconButton(onClick = { /* TODO */ }) {
+                    IconButton(onClick = { /* TODO: Settings */ }) {
                         Icon(Icons.Default.Settings, contentDescription = "Settings")
                     }
                 }
             )
         },
-        bottomBar = { FinanceBottomNav() }
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { navController.navigate(Routes.ADD_EXPENSE) },
+                containerColor = Color(0xFF1976D2)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add Expense")
+            }
+        }
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
@@ -38,7 +71,6 @@ fun FinanceDashboardScreen() {
                 .padding(16.dp)
         ) {
             item {
-                // Total Spent Card
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
@@ -46,8 +78,7 @@ fun FinanceDashboardScreen() {
                 ) {
                     Column(modifier = Modifier.padding(20.dp)) {
                         Text("SPENT THIS MONTH", color = Color.White.copy(0.8f), fontSize = 14.sp)
-                        Text("₹1,240", color = Color.White, fontSize = 36.sp, fontWeight = FontWeight.Bold)
-                        Text("↑ 12% from last month", color = Color.White.copy(0.8f), fontSize = 13.sp)
+                        Text("₹${totalSpent.toInt()}", color = Color.White, fontSize = 36.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -60,7 +91,7 @@ fun FinanceDashboardScreen() {
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     StatCard("This Week", "₹4,800", Modifier.weight(1f))
-                    StatCard("This Month", "₹18,200", Modifier.weight(1f))
+                    StatCard("This Month", "₹${totalSpent.toInt()}", Modifier.weight(1f))
                 }
             }
 
@@ -72,28 +103,17 @@ fun FinanceDashboardScreen() {
 
             item { Spacer(Modifier.height(8.dp)) }
 
-            items(5) { index ->
+            items(recentTransactions.size) { index ->
+                val transaction = recentTransactions[index]
                 TransactionItem(
-                    title = when (index) {
-                        0 -> "Groceries"
-                        1 -> "Lunch Out"
-                        2 -> "Fuel Refill"
-                        3 -> "Streaming Subscription"
-                        else -> "Starbucks"
-                    },
-                    amount = when (index) {
-                        0 -> "-₹340"
-                        1 -> "-₹420"
-                        2 -> "-₹1,200"
-                        3 -> "-₹199"
-                        else -> "-₹280"
-                    },
+                    title = transaction.category,
+                    amount = if (transaction.isExpense) "-₹${transaction.amount.toInt()}" else "+₹${transaction.amount.toInt()}",
                     date = "Today"
                 )
             }
 
             item {
-                TextButton(onClick = { /* TODO: See All */ }) {
+                TextButton(onClick = { navController.navigate(Routes.REPORTS) }) {
                     Text("See All", color = Color(0xFF1976D2))
                 }
             }
@@ -125,25 +145,10 @@ fun TransactionItem(title: String, amount: String, date: String) {
             Text(title, fontWeight = FontWeight.Medium)
             Text(date, fontSize = 12.sp, color = Color.Gray)
         }
-        Text(amount, fontWeight = FontWeight.SemiBold, color = if (amount.startsWith("-")) Color.Red else Color.Green)
-    }
-}
-
-@Composable
-fun FinanceBottomNav() {
-    NavigationBar {
-        NavigationBarItem(selected = false, onClick = {}, icon = { Icon(Icons.Default.Home, null) }, label = { Text("Home") })
-        NavigationBarItem(selected = false, onClick = {}, icon = { Icon(Icons.Default.GridView, null) }, label = { Text("Everyday") })
-        NavigationBarItem(selected = true, onClick = {}, icon = { Icon(Icons.Default.ShowChart, null) }, label = { Text("Finance") })
-        NavigationBarItem(selected = false, onClick = {}, icon = { Icon(Icons.Default.Warning, null) }, label = { Text("Emergency") })
-        NavigationBarItem(selected = false, onClick = {}, icon = { Icon(Icons.Default.Apps, null) }, label = { Text("Quick Tools") })
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun FinanceDashboardPreview() {
-    MaterialTheme {
-        FinanceDashboardScreen()
+        Text(
+            amount,
+            fontWeight = FontWeight.SemiBold,
+            color = if (amount.startsWith("-")) Color.Red else Color(0xFF4CAF50)
+        )
     }
 }
