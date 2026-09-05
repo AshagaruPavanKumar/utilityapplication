@@ -1,17 +1,18 @@
 package com.utilityapplication.com.feature.everday.pres.ui.frag
 
 import android.content.Intent
-import androidx.fragment.app.Fragment
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.fragment.app.Fragment
 import com.utilityapplication.com.feature.everday.pres.ui.act.AgeCalculatorActivity
 import com.utilityapplication.com.feature.everday.pres.ui.act.RandomToolsActivity
 import com.utilityapplication.com.feature.everday.pres.ui.act.UnitConverterActivity
 import com.utilityapplication.com.feature.everday.pres.ui.scr.EverydayScreen
-import com.utilityapplication.com.theme.UtilityKitTheme
+import com.utilityapplication.com.theme.UtilityAppTheme
 
 class EverydayFragment : Fragment() {
 
@@ -21,13 +22,12 @@ class EverydayFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                UtilityKitTheme {
+                UtilityAppTheme {
                     EverydayScreen(
-                        onBackClick = { requireActivity().onBackPressed() },
-                        onToolClick = { toolTitle ->
-                            handleToolClick(toolTitle)
-                        }
+                        onBackClick = { requireActivity().onBackPressedDispatcher.onBackPressed() },
+                        onToolClick = { handleToolClick(it) }
                     )
                 }
             }
@@ -35,23 +35,14 @@ class EverydayFragment : Fragment() {
     }
 
     private fun handleToolClick(toolTitle: String) {
-        when (toolTitle) {
-            "Age Calculator" -> {
-                // TODO: Navigate to Age Calculator
-                // Example: findNavController().navigate(R.id.action_everyday_to_ageCalculator)
-                startActivity(Intent(requireContext(), AgeCalculatorActivity::class.java))
-
-            }
-            "Unit Converter" -> {
-                // Navigate to Unit Converter Activity / Fragment
-                startActivity(Intent(requireContext(), UnitConverterActivity::class.java))
-            }
-            "Random Tools" -> {
-                startActivity(Intent(requireContext(), RandomToolsActivity::class.java))
-            }
-            "Health Stats" -> {
-                // TODO: Navigate to Health Stats
-            }
+        val destination = when (toolTitle) {
+            "Age Calculator" -> AgeCalculatorActivity::class.java
+            "Unit Converter" -> UnitConverterActivity::class.java
+            "Random Tools" -> RandomToolsActivity::class.java
+            else -> null
+        }
+        if (destination != null) {
+            startActivity(Intent(requireContext(), destination))
         }
     }
 }

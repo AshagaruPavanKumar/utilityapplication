@@ -9,9 +9,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,7 +35,8 @@ import com.utilityapplication.com.theme.UtilityKitTheme
         onEverydayClick: () -> Unit = {},
         onFinanceClick: () -> Unit = {},
         onEmergencyClick: () -> Unit = {},
-        onQuickToolsClick: () -> Unit = {}
+        onQuickToolsClick: () -> Unit = {},
+        onSettingsClick: () -> Unit = {}
     ) {
         Scaffold(
             topBar = {
@@ -46,7 +49,7 @@ import com.utilityapplication.com.theme.UtilityKitTheme
                         )
                     },
                     actions = {
-                        IconButton(onClick = { /* TODO: Settings */ }) {
+                        IconButton(onClick = onSettingsClick) {
                             Icon(Icons.Default.Settings, contentDescription = "Settings")
                         }
                     }
@@ -80,13 +83,25 @@ import com.utilityapplication.com.theme.UtilityKitTheme
             Spacer(Modifier.height(12.dp))
 
             // Greeting
+            val greeting = remember {
+                val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+                when {
+                    hour < 12 -> "Good morning"
+                    hour < 17 -> "Good afternoon"
+                    else -> "Good evening"
+                }
+            }
+            val todayLabel = remember {
+                java.text.SimpleDateFormat("EEEE, MMMM d", java.util.Locale.getDefault())
+                    .format(java.util.Date())
+            }
             Text(
-                text = "Good morning ☀️",
+                text = greeting,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = "Sunday, June 14",
+                text = todayLabel,
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -108,7 +123,7 @@ import com.utilityapplication.com.theme.UtilityKitTheme
                 )
                 CategoryCard(
                     title = "Finance",
-                    icon = Icons.Default.ShowChart,
+                    icon = Icons.AutoMirrored.Filled.ShowChart,
                     iconTint = Color(0xFF388E3C),
                     containerColor = Color(0xFFC8E6C9),
                     modifier = Modifier.weight(1f).height(140.dp),

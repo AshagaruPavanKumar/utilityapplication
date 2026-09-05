@@ -4,7 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.ShowChart
+import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -33,7 +33,7 @@ val TopLevelRoutes = setOf(
 val bottomNavItems = listOf(
     BottomNavItem(Routes.HOME, "Home", Icons.Default.Home),
     BottomNavItem(Routes.EVERYDAY, "Everyday", Icons.Default.GridView),
-    BottomNavItem(Routes.FINANCE, "Finance", Icons.Default.ShowChart),
+    BottomNavItem(Routes.FINANCE, "Finance", Icons.AutoMirrored.Filled.ShowChart),
     BottomNavItem(Routes.EMERGENCY, "Emergency", Icons.Default.Warning),
     BottomNavItem(Routes.QUICK_TOOLS, "Quick Tools", Icons.Default.Apps)
 )

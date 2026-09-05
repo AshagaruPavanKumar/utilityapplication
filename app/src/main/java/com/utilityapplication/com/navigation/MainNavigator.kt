@@ -18,4 +18,12 @@ object MainNavigator {
             context.finish()
         }
     }
+
+    fun openSettings(context: Context) {
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            putExtra(EXTRA_TAB, Routes.SETTINGS)
+        }
+        context.startActivity(intent)
+    }
 }

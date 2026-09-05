@@ -1,74 +1,71 @@
 package com.utilityapplication.com.feature.everday.pres.ui.scr
 
-import androidx.compose.animation.core.*
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import com.utilityapplication.com.navigation.AppBottomBar
-import com.utilityapplication.com.navigation.MainNavigator
-import com.utilityapplication.com.navigation.Routes
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.MainScope
+import com.utilityapplication.com.core.analytics.AppAnalytics
+import com.utilityapplication.com.core.ui.ToolScaffold
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RandomToolsScreen(onBackClick: () -> Unit = {}) {
-    val context = LocalContext.current
+fun RandomToolsScreen(
+    onBackClick: () -> Unit = {},
+    onSettingsClick: () -> Unit = {}
+) {
     var selectedTab by remember { mutableStateOf("Coin") }
-    var coinResult by remember { mutableStateOf("Heads") }
-    var isFlipping by remember { mutableStateOf(false) }
-    var diceResult by remember { mutableStateOf(6) }
-    var randomNumber by remember { mutableStateOf(42) }
-    var isRolling by remember { mutableStateOf(false) }
-
     val tabs = listOf("Coin", "Dice", "Number")
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Random Tools", fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                }
-            )
-        },
-        bottomBar = {
-            AppBottomBar(
-                currentRoute = Routes.EVERYDAY,
-                onTabSelected = { route ->
-                    if (route == Routes.EVERYDAY) onBackClick()
-                    else MainNavigator.openTab(context, route)
-                }
-            )
-        }
-    ) { innerPadding ->
+    ToolScaffold(title = "Random Tools", onBack = onBackClick, onSettings = onSettingsClick) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Tabs
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -84,67 +81,32 @@ fun RandomToolsScreen(onBackClick: () -> Unit = {}) {
                             .height(40.dp),
                         shape = RoundedCornerShape(50),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (isSelected) Color(0xFF1976D2) else Color.Transparent,
+                            containerColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
                             contentColor = if (isSelected) Color.White else Color.Black
                         ),
                         elevation = null
-                    ) {
-                        Text(tab, fontSize = 14.sp)
-                    }
+                    ) { Text(tab, fontSize = 14.sp) }
                 }
             }
-
-            Spacer(Modifier.height(48.dp))
-
+            Spacer(Modifier.height(32.dp))
             when (selectedTab) {
-                "Coin" -> CoinTossSection(
-                    coinResult = coinResult,
-                    isFlipping = isFlipping,
-                    onToss = {
-                        isFlipping = true
-                        // Simulate flip delay
-                        MainScope().launch {
-                            delay(600)
-                            coinResult = if (Random.nextBoolean()) "Heads" else "Tails"
-                            isFlipping = false
-                        }
-                    }
-                )
-
-                "Dice" -> DiceSection(
-                    diceResult = diceResult,
-                    isRolling = isRolling,
-                    onRoll = {
-                        isRolling = true
-                        MainScope().launch {
-                            delay(500)
-                            diceResult = Random.nextInt(1, 7)
-                            isRolling = false
-                        }
-                    }
-                )
-
-                "Number" -> RandomNumberSection(
-                    randomNumber = randomNumber,
-                    onGenerate = {
-                        randomNumber = Random.nextInt(1, 101)
-                    }
-                )
+                "Coin" -> CoinTossSection()
+                "Dice" -> DiceSection()
+                "Number" -> RandomNumberSection()
             }
         }
     }
 }
 
-// ==================== COIN TOSS ====================
 @Composable
-fun CoinTossSection(
-    coinResult: String,
-    isFlipping: Boolean,
-    onToss: () -> Unit
-) {
+private fun CoinTossSection() {
+    var coinResult by remember { mutableStateOf("Heads") }
+    var isFlipping by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
     val rotation by animateFloatAsState(
         targetValue = if (isFlipping) 720f else 0f,
-        animationSpec = tween(600, easing = FastOutSlowInEasing)
+        animationSpec = tween(600, easing = FastOutSlowInEasing),
+        label = "coin"
     )
 
     Box(
@@ -155,112 +117,123 @@ fun CoinTossSection(
             .background(Color(0xFFFFD54F)),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = if (coinResult == "Heads") "🪙" else "🔄",
-            fontSize = 72.sp
-        )
+        Text(if (coinResult == "Heads") "H" else "T", fontSize = 64.sp, fontWeight = FontWeight.Bold)
     }
-
-    Spacer(Modifier.height(32.dp))
-
-    Text(
-        text = coinResult,
-        fontSize = 36.sp,
-        fontWeight = FontWeight.Bold,
-        color = Color(0xFF1976D2)
-    )
-
-    Spacer(Modifier.height(48.dp))
-
-    Button(
-        onClick = onToss,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2))
-    ) {
-        Text("Toss Coin", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-    }
-}
-
-// ==================== DICE ====================
-@Composable
-fun DiceSection(diceResult: Int, isRolling: Boolean, onRoll: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .size(140.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFF424242)),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = "🎲",
-            fontSize = if (isRolling) 80.sp else 100.sp,
-            color = Color.White
-        )
-    }
-
     Spacer(Modifier.height(24.dp))
-
-    Text(
-        text = diceResult.toString(),
-        fontSize = 48.sp,
-        fontWeight = FontWeight.Bold,
-        color = Color(0xFF1976D2)
-    )
-
-    Spacer(Modifier.height(40.dp))
-
+    Text(coinResult, fontSize = 36.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+    Spacer(Modifier.height(32.dp))
     Button(
-        onClick = onRoll,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp),
+        onClick = {
+            if (isFlipping) return@Button
+            isFlipping = true
+            scope.launch {
+                delay(600)
+                coinResult = if (Random.nextBoolean()) "Heads" else "Tails"
+                isFlipping = false
+                AppAnalytics.logToolUsed("coin_toss")
+            }
+        },
+        modifier = Modifier.fillMaxWidth().height(56.dp),
         shape = RoundedCornerShape(16.dp)
-    ) {
-        Text(if (isRolling) "Rolling..." else "Roll Dice", fontSize = 18.sp)
-    }
+    ) { Text("Toss Coin", fontSize = 18.sp, fontWeight = FontWeight.SemiBold) }
 }
 
-// ==================== RANDOM NUMBER ====================
 @Composable
-fun RandomNumberSection(randomNumber: Int, onGenerate: () -> Unit) {
+private fun DiceSection() {
+    var diceCount by remember { mutableIntStateOf(1) }
+    var results by remember { mutableStateOf(listOf(6)) }
+    var isRolling by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
+    Text("Number of dice", color = Color.Gray)
+    Spacer(Modifier.height(8.dp))
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        (1..6).forEach { count ->
+            FilterChip(
+                selected = diceCount == count,
+                onClick = { diceCount = count },
+                label = { Text("$count") }
+            )
+        }
+    }
+    Spacer(Modifier.height(24.dp))
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        results.forEach { value ->
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFF424242)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("$value", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+    Spacer(Modifier.height(16.dp))
+    Text("Total: ${results.sum()}", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+    Spacer(Modifier.height(24.dp))
+    Button(
+        onClick = {
+            if (isRolling) return@Button
+            isRolling = true
+            scope.launch {
+                delay(400)
+                results = List(diceCount) { Random.nextInt(1, 7) }
+                isRolling = false
+                AppAnalytics.logToolUsed("dice_roller")
+            }
+        },
+        modifier = Modifier.fillMaxWidth().height(56.dp),
+        shape = RoundedCornerShape(16.dp)
+    ) { Text(if (isRolling) "Rolling..." else "Roll Dice", fontSize = 18.sp) }
+}
+
+@Composable
+private fun RandomNumberSection() {
+    var minText by remember { mutableStateOf("1") }
+    var maxText by remember { mutableStateOf("100") }
+    var randomNumber by remember { mutableStateOf("42") }
+
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+        OutlinedTextField(
+            value = minText,
+            onValueChange = { minText = it.filter { ch -> ch.isDigit() || ch == '-' } },
+            label = { Text("Min") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.weight(1f),
+            singleLine = true
+        )
+        OutlinedTextField(
+            value = maxText,
+            onValueChange = { maxText = it.filter { ch -> ch.isDigit() || ch == '-' } },
+            label = { Text("Max") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.weight(1f),
+            singleLine = true
+        )
+    }
+    Spacer(Modifier.height(24.dp))
     Card(
         modifier = Modifier.size(200.dp),
         shape = RoundedCornerShape(32.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD))
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = randomNumber.toString(),
-                fontSize = 72.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF1976D2)
-            )
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(randomNumber, fontSize = 56.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
         }
     }
-
-    Spacer(Modifier.height(40.dp))
-
+    Spacer(Modifier.height(24.dp))
     Button(
-        onClick = onGenerate,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp),
+        onClick = {
+            val min = minText.toIntOrNull() ?: 1
+            val max = maxText.toIntOrNull() ?: 100
+            val lo = minOf(min, max)
+            val hi = maxOf(min, max)
+            randomNumber = Random.nextInt(lo, hi + 1).toString()
+            AppAnalytics.logToolUsed("random_number")
+        },
+        modifier = Modifier.fillMaxWidth().height(56.dp),
         shape = RoundedCornerShape(16.dp)
-    ) {
-        Text("Generate New Number (1-100)", fontSize = 16.sp)
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun RandomToolsScreenPreview() {
-    MaterialTheme {
-        RandomToolsScreen()
-    }
+    ) { Text("Generate random number", fontSize = 16.sp) }
 }

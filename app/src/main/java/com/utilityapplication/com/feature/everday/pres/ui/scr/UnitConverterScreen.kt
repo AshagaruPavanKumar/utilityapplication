@@ -3,48 +3,81 @@
 package com.utilityapplication.com.feature.everday.pres.ui.scr
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.SwapVert
+import androidx.compose.material.icons.outlined.StarBorder
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import com.utilityapplication.com.navigation.AppBottomBar
-import com.utilityapplication.com.navigation.MainNavigator
-import com.utilityapplication.com.navigation.Routes
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.utilityapplication.com.core.prefs.AppPreferences
+import com.utilityapplication.com.core.ui.ToolScaffold
 
-@OptIn(ExperimentalMaterial3Api::class)
+private val converterCategories = listOf(
+    "Length", "Weight", "Temperature", "Speed", "Area", "Volume", "Time", "Data Storage"
+)
+
 @Composable
-fun UnitConverterScreen(onBackClick: () -> Unit = {}) {
+fun UnitConverterScreen(
+    onBackClick: () -> Unit = {},
+    onSettingsClick: () -> Unit = {}
+) {
     val context = LocalContext.current
+    val prefs = remember { AppPreferences.get(context) }
+    val favorites by prefs.favorites.collectAsState()
+
     var selectedCategory by remember { mutableStateOf("Length") }
     var fromUnit by remember { mutableStateOf("Meters") }
     var toUnit by remember { mutableStateOf("Feet") }
     var inputValue by remember { mutableStateOf("1") }
     var result by remember { mutableStateOf("3.28084") }
 
-    val categories = listOf("Length", "Weight", "Volume", "Temperature")
+    val unitOptions = unitsFor(selectedCategory)
+    val pairKey = "$selectedCategory|$fromUnit|$toUnit"
 
-    // Unit options based on category
-    val unitOptions = when (selectedCategory) {
-        "Length" -> listOf("Meters", "Kilometers", "Centimeters", "Millimeters", "Feet", "Inches", "Miles")
-        "Weight" -> listOf("Kilograms", "Grams", "Milligrams", "Pounds", "Ounces", "Tons")
-        "Volume" -> listOf("Liters", "Milliliters", "Cubic Meters", "Gallons (US)", "Cups", "Fluid Ounces")
-        "Temperature" -> listOf("Celsius", "Fahrenheit", "Kelvin")
-        else -> emptyList()
-    }
-
-    // Calculate result whenever input or units change
     LaunchedEffect(inputValue, fromUnit, toUnit, selectedCategory) {
         result = calculateConversion(
             inputValue.toDoubleOrNull() ?: 0.0,
@@ -54,69 +87,68 @@ fun UnitConverterScreen(onBackClick: () -> Unit = {}) {
         )
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Unit Converter", fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                }
-            )
-        },
-        bottomBar = {
-            AppBottomBar(
-                currentRoute = Routes.EVERYDAY,
-                onTabSelected = { route ->
-                    if (route == Routes.EVERYDAY) onBackClick()
-                    else MainNavigator.openTab(context, route)
-                }
-            )
-        }
-    ) { innerPadding ->
+    ToolScaffold(title = "Unit Converter", onBack = onBackClick, onSettings = onSettingsClick) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
-            // Category Tabs
+            if (favorites.isNotEmpty()) {
+                Text("Favorites", fontSize = 13.sp, color = Color.Gray)
+                Spacer(Modifier.height(6.dp))
+                favorites.forEach { key ->
+                    val parts = key.split("|")
+                    if (parts.size == 3) {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 8.dp)
+                                .clickable {
+                                    selectedCategory = parts[0]
+                                    fromUnit = parts[1]
+                                    toUnit = parts[2]
+                                },
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text(
+                                "${parts[0]}: ${parts[1]} → ${parts[2]}",
+                                modifier = Modifier.padding(12.dp),
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+            }
+
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.padding(bottom = 16.dp)
             ) {
-                items(categories) { category ->
+                items(converterCategories) { category ->
                     FilterChip(
                         selected = selectedCategory == category,
                         onClick = {
                             selectedCategory = category
-                            // Reset units when category changes
-                            fromUnit = unitOptions.firstOrNull() ?: ""
-                            toUnit = unitOptions.getOrNull(1) ?: ""
+                            val units = unitsFor(category)
+                            fromUnit = units.first()
+                            toUnit = units.getOrElse(1) { units.first() }
                         },
                         label = { Text(category) },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = Color(0xFF1976D2),
+                            selectedContainerColor = MaterialTheme.colorScheme.primary,
                             selectedLabelColor = Color.White
                         )
                     )
                 }
             }
 
-            // From Section
             Text("From", fontSize = 14.sp, color = Color.Gray)
             Spacer(Modifier.height(6.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                UnitDropdown(
-                    selectedUnit = fromUnit,
-                    units = unitOptions,
-                    onUnitSelected = { fromUnit = it },
-                    modifier = Modifier.weight(1f)
-                )
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                UnitDropdown(fromUnit, unitOptions, { fromUnit = it }, Modifier.weight(1f))
                 Spacer(Modifier.width(12.dp))
                 OutlinedTextField(
                     value = inputValue,
@@ -127,13 +159,8 @@ fun UnitConverterScreen(onBackClick: () -> Unit = {}) {
                 )
             }
 
-            Spacer(Modifier.height(24.dp))
-
-            // Swap Button
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
+            Spacer(Modifier.height(16.dp))
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 IconButton(
                     onClick = {
                         val temp = fromUnit
@@ -142,51 +169,40 @@ fun UnitConverterScreen(onBackClick: () -> Unit = {}) {
                     },
                     modifier = Modifier
                         .size(56.dp)
-                        .background(Color(0xFF1976D2), shape = RoundedCornerShape(50))
+                        .background(MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(50))
                 ) {
-                    Icon(
-                        Icons.Default.SwapVert,
-                        contentDescription = "Swap",
-                        tint = Color.White,
-                        modifier = Modifier.size(28.dp)
-                    )
+                    Icon(Icons.Default.SwapVert, contentDescription = "Swap", tint = Color.White, modifier = Modifier.size(28.dp))
                 }
             }
+            Spacer(Modifier.height(16.dp))
 
-            Spacer(Modifier.height(24.dp))
-
-            // To Section
             Text("To", fontSize = 14.sp, color = Color.Gray)
             Spacer(Modifier.height(6.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                UnitDropdown(
-                    selectedUnit = toUnit,
-                    units = unitOptions,
-                    onUnitSelected = { toUnit = it },
-                    modifier = Modifier.weight(1f)
-                )
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                UnitDropdown(toUnit, unitOptions, { toUnit = it }, Modifier.weight(1f))
                 Spacer(Modifier.width(12.dp))
-                Box(
-                    modifier = Modifier
-                        .width(120.dp)
-                        .height(56.dp),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    Text(
-                        text = result,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1976D2)
-                    )
-                }
+                Text(
+                    text = result,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.width(120.dp)
+                )
             }
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(20.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = { prefs.toggleFavorite(pairKey) }) {
+                    Icon(
+                        if (favorites.contains(pairKey)) Icons.Default.Star else Icons.Outlined.StarBorder,
+                        contentDescription = "Favorite",
+                        tint = Color(0xFFFFA000)
+                    )
+                }
+                Text(if (favorites.contains(pairKey)) "Saved to favorites" else "Save this conversion")
+            }
 
-            // Result Display
+            Spacer(Modifier.height(12.dp))
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -195,10 +211,10 @@ fun UnitConverterScreen(onBackClick: () -> Unit = {}) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text("Result", style = MaterialTheme.typography.titleMedium)
                     Text(
-                        text = "$inputValue $fromUnit = $result $toUnit",
+                        "$inputValue $fromUnit = $result $toUnit",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1976D2)
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -214,23 +230,15 @@ fun UnitDropdown(
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = it },
-        modifier = modifier
-    ) {
+    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }, modifier = modifier) {
         OutlinedTextField(
             value = selectedUnit,
             onValueChange = {},
             readOnly = true,
             trailingIcon = { Icon(Icons.Default.ArrowDropDown, null) },
-            modifier = Modifier.menuAnchor()
+            modifier = Modifier.menuAnchor(type = MenuAnchorType.PrimaryNotEditable)
         )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
+        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             units.forEach { unit ->
                 DropdownMenuItem(
                     text = { Text(unit) },
@@ -244,110 +252,80 @@ fun UnitDropdown(
     }
 }
 
-// ==================== CONVERSION LOGIC ====================
+fun unitsFor(category: String): List<String> = when (category) {
+    "Length" -> listOf("Meters", "Kilometers", "Centimeters", "Millimeters", "Feet", "Inches", "Miles")
+    "Weight" -> listOf("Kilograms", "Grams", "Milligrams", "Pounds", "Ounces", "Tons")
+    "Temperature" -> listOf("Celsius", "Fahrenheit", "Kelvin")
+    "Speed" -> listOf("m/s", "km/h", "mph", "knots")
+    "Area" -> listOf("Square Meters", "Square Kilometers", "Square Feet", "Acres", "Hectares")
+    "Volume" -> listOf("Liters", "Milliliters", "Cubic Meters", "Gallons (US)", "Cups", "Fluid Ounces")
+    "Time" -> listOf("Seconds", "Minutes", "Hours", "Days", "Weeks")
+    "Data Storage" -> listOf("Bytes", "Kilobytes", "Megabytes", "Gigabytes", "Terabytes")
+    else -> emptyList()
+}
 
 fun calculateConversion(value: Double, from: String, to: String, category: String): String {
-    if (value == 0.0) return "0"
-
+    if (from == to) return formatNumber(value)
     return try {
         val converted = when (category) {
-            "Length" -> convertLength(value, from, to)
-            "Weight" -> convertWeight(value, from, to)
-            "Volume" -> convertVolume(value, from, to)
+            "Length" -> convertLinear(value, from, to, lengthToMeter)
+            "Weight" -> convertLinear(value, from, to, weightToKg)
+            "Volume" -> convertLinear(value, from, to, volumeToLiter)
+            "Speed" -> convertLinear(value, from, to, speedToMs)
+            "Area" -> convertLinear(value, from, to, areaToSqm)
+            "Time" -> convertLinear(value, from, to, timeToSeconds)
+            "Data Storage" -> convertLinear(value, from, to, dataToBytes)
             "Temperature" -> convertTemperature(value, from, to)
             else -> value
         }
-        String.format("%.6f", converted).trimEnd('0').trimEnd('.')
-    } catch (e: Exception) {
+        formatNumber(converted)
+    } catch (_: Exception) {
         "Error"
     }
 }
 
-// Conversion functions (you can expand these)
-private fun convertLength(value: Double, from: String, to: String): Double {
-    val toMeter = when (from) {
-        "Kilometers" -> value * 1000
-        "Meters" -> value
-        "Centimeters" -> value / 100
-        "Millimeters" -> value / 1000
-        "Feet" -> value * 0.3048
-        "Inches" -> value * 0.0254
-        "Miles" -> value * 1609.34
-        else -> value
-    }
-    return when (to) {
-        "Kilometers" -> toMeter / 1000
-        "Meters" -> toMeter
-        "Centimeters" -> toMeter * 100
-        "Millimeters" -> toMeter * 1000
-        "Feet" -> toMeter / 0.3048
-        "Inches" -> toMeter / 0.0254
-        "Miles" -> toMeter / 1609.34
-        else -> toMeter
-    }
+private fun formatNumber(value: Double): String =
+    String.format("%.6f", value).trimEnd('0').trimEnd('.')
+
+private fun convertLinear(value: Double, from: String, to: String, table: Map<String, Double>): Double {
+    val base = value * (table[from] ?: 1.0)
+    return base / (table[to] ?: 1.0)
 }
 
-private fun convertWeight(value: Double, from: String, to: String): Double {
-    val toKg = when (from) {
-        "Kilograms" -> value
-        "Grams" -> value / 1000
-        "Milligrams" -> value / 1_000_000
-        "Pounds" -> value * 0.453592
-        "Ounces" -> value * 0.0283495
-        "Tons" -> value * 1000
-        else -> value
-    }
-    return when (to) {
-        "Kilograms" -> toKg
-        "Grams" -> toKg * 1000
-        "Milligrams" -> toKg * 1_000_000
-        "Pounds" -> toKg / 0.453592
-        "Ounces" -> toKg / 0.0283495
-        "Tons" -> toKg / 1000
-        else -> toKg
-    }
-}
-
-private fun convertVolume(value: Double, from: String, to: String): Double {
-    val toLiter = when (from) {
-        "Liters" -> value
-        "Milliliters" -> value / 1000
-        "Cubic Meters" -> value * 1000
-        "Gallons (US)" -> value * 3.78541
-        "Cups" -> value * 0.236588
-        "Fluid Ounces" -> value * 0.0295735
-        else -> value
-    }
-    return when (to) {
-        "Liters" -> toLiter
-        "Milliliters" -> toLiter * 1000
-        "Cubic Meters" -> toLiter / 1000
-        "Gallons (US)" -> toLiter / 3.78541
-        "Cups" -> toLiter / 0.236588
-        "Fluid Ounces" -> toLiter / 0.0295735
-        else -> toLiter
-    }
-}
+private val lengthToMeter = mapOf(
+    "Kilometers" to 1000.0, "Meters" to 1.0, "Centimeters" to 0.01, "Millimeters" to 0.001,
+    "Feet" to 0.3048, "Inches" to 0.0254, "Miles" to 1609.34
+)
+private val weightToKg = mapOf(
+    "Kilograms" to 1.0, "Grams" to 0.001, "Milligrams" to 0.000001,
+    "Pounds" to 0.453592, "Ounces" to 0.0283495, "Tons" to 1000.0
+)
+private val volumeToLiter = mapOf(
+    "Liters" to 1.0, "Milliliters" to 0.001, "Cubic Meters" to 1000.0,
+    "Gallons (US)" to 3.78541, "Cups" to 0.236588, "Fluid Ounces" to 0.0295735
+)
+private val speedToMs = mapOf("m/s" to 1.0, "km/h" to 1 / 3.6, "mph" to 0.44704, "knots" to 0.514444)
+private val areaToSqm = mapOf(
+    "Square Meters" to 1.0, "Square Kilometers" to 1_000_000.0, "Square Feet" to 0.092903,
+    "Acres" to 4046.86, "Hectares" to 10_000.0
+)
+private val timeToSeconds = mapOf(
+    "Seconds" to 1.0, "Minutes" to 60.0, "Hours" to 3600.0, "Days" to 86400.0, "Weeks" to 604800.0
+)
+private val dataToBytes = mapOf(
+    "Bytes" to 1.0, "Kilobytes" to 1024.0, "Megabytes" to 1024.0 * 1024,
+    "Gigabytes" to 1024.0 * 1024 * 1024, "Terabytes" to 1024.0 * 1024 * 1024 * 1024
+)
 
 private fun convertTemperature(value: Double, from: String, to: String): Double {
     val celsius = when (from) {
-        "Celsius" -> value
         "Fahrenheit" -> (value - 32) * 5 / 9
         "Kelvin" -> value - 273.15
         else -> value
     }
     return when (to) {
-        "Celsius" -> celsius
         "Fahrenheit" -> celsius * 9 / 5 + 32
         "Kelvin" -> celsius + 273.15
         else -> celsius
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun UnitConverterScreenPreview() {
-    MaterialTheme {
-        UnitConverterScreen()
     }
 }

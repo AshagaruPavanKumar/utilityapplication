@@ -10,5 +10,8 @@ data class Expense(
     val category: String,
     val date: Long,
     val notes: String = "",
-    val isExpense: Boolean = true
+    val isExpense: Boolean = true,
+    val isRecurring: Boolean = false,
+    val recurrence: String = "",
+    val lastGenerated: Long = 0L
 )

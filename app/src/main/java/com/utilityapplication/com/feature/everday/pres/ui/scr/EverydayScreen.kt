@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -23,34 +24,60 @@ import androidx.compose.ui.unit.sp
 import com.utilityapplication.com.feature.everday.pres.ui.act.AgeCalculatorActivity
 import com.utilityapplication.com.feature.everday.pres.ui.act.RandomToolsActivity
 import com.utilityapplication.com.feature.everday.pres.ui.act.UnitConverterActivity
+import com.utilityapplication.com.theme.UtilityKitTheme
 
 data class DailyTool(
     val title: String,
     val description: String,
     val icon: ImageVector,
-    val iconTint: Color,
-    val backgroundColor: Color
+    val iconTint: Color
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EverydayScreen(onBackClick: () -> Unit = {}) {
+fun EverydayScreen(
+    onBackClick: () -> Unit = {},
+    onSettingsClick: () -> Unit = {},
+    onToolClick: ((String) -> Unit)? = null
+) {
     val context = LocalContext.current
+    val openTool: (String) -> Unit = onToolClick ?: { title ->
+        when (title) {
+            "Age Calculator" -> context.startActivity(
+                Intent(context, AgeCalculatorActivity::class.java)
+            )
+            "Unit Converter" -> context.startActivity(
+                Intent(context, UnitConverterActivity::class.java)
+            )
+            "Random Tools" -> context.startActivity(
+                Intent(context, RandomToolsActivity::class.java)
+            )
+        }
+    }
+
+    val colorScheme = MaterialTheme.colorScheme
 
     Scaffold(
+        containerColor = colorScheme.background,
         topBar = {
             TopAppBar(
                 title = { Text("Everyday", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* TODO: Settings */ }) {
+                    IconButton(onClick = onSettingsClick) {
                         Icon(Icons.Default.Settings, contentDescription = "Settings")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = colorScheme.background,
+                    titleContentColor = colorScheme.onBackground,
+                    navigationIconContentColor = colorScheme.onBackground,
+                    actionIconContentColor = colorScheme.onBackground
+                )
             )
         }
     ) { innerPadding ->
@@ -58,7 +85,7 @@ fun EverydayScreen(onBackClick: () -> Unit = {}) {
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .background(Color(0xFFF8F9FA))
+                .background(colorScheme.background)
         ) {
             // Header Card
             item {
@@ -67,19 +94,19 @@ fun EverydayScreen(onBackClick: () -> Unit = {}) {
                         .fillMaxWidth()
                         .padding(16.dp),
                     shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1976D2))
+                    colors = CardDefaults.cardColors(containerColor = colorScheme.primary)
                 ) {
                     Column(modifier = Modifier.padding(20.dp)) {
                         Text(
                             text = "Daily Utilities",
-                            color = Color.White,
+                            color = colorScheme.onPrimary,
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
                             text = "Essential tools for your daily routine.",
-                            color = Color.White.copy(alpha = 0.9f),
+                            color = colorScheme.onPrimary.copy(alpha = 0.9f),
                             fontSize = 15.sp
                         )
                     }
@@ -88,7 +115,10 @@ fun EverydayScreen(onBackClick: () -> Unit = {}) {
 
             // List Items
             items(getDailyTools()) { tool ->
-                ToolListItem(tool = tool)
+                ToolListItem(
+                    tool = tool,
+                    onClick = { openTool(tool.title) }
+                )
             }
 
             // Request New Tool Button
@@ -100,7 +130,7 @@ fun EverydayScreen(onBackClick: () -> Unit = {}) {
                         .padding(horizontal = 16.dp, vertical = 24.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = Color(0xFF1976D2)
+                        contentColor = colorScheme.primary
                     )
                 ) {
                     Icon(Icons.Default.Add, contentDescription = null)
@@ -113,14 +143,15 @@ fun EverydayScreen(onBackClick: () -> Unit = {}) {
 }
 
 @Composable
-fun ToolListItem(tool: DailyTool) {
+fun ToolListItem(tool: DailyTool, onClick: () -> Unit = {}) {
+    val colorScheme = MaterialTheme.colorScheme
     Card(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceContainer),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
@@ -134,7 +165,7 @@ fun ToolListItem(tool: DailyTool) {
                 modifier = Modifier
                     .size(48.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(tool.backgroundColor),
+                    .background(tool.iconTint.copy(alpha = 0.18f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -152,19 +183,20 @@ fun ToolListItem(tool: DailyTool) {
                 Text(
                     text = tool.title,
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    color = colorScheme.onSurface
                 )
                 Text(
                     text = tool.description,
                     fontSize = 13.sp,
-                    color = Color.Gray
+                    color = colorScheme.onSurfaceVariant
                 )
             }
 
             Icon(
                 imageVector = Icons.Default.ChevronRight,
                 contentDescription = "Open",
-                tint = Color.Gray
+                tint = colorScheme.onSurfaceVariant
             )
         }
     }
@@ -176,29 +208,19 @@ fun getDailyTools(): List<DailyTool> {
             title = "Age Calculator",
             description = "Calculate exact age in years, months, days",
             icon = Icons.Default.CalendarToday,
-            iconTint = Color(0xFF1976D2),
-            backgroundColor = Color(0xFFE3F2FD)
+            iconTint = Color(0xFF1976D2)
         ),
         DailyTool(
             title = "Unit Converter",
             description = "Fast length, weight, and volume conversions",
             icon = Icons.Default.Straighten,
-            iconTint = Color(0xFFFF9800),
-            backgroundColor = Color(0xFFFFF3E0)
+            iconTint = Color(0xFFFF9800)
         ),
         DailyTool(
             title = "Random Tools",
             description = "Dice roller, coin flip, and random numbers",
             icon = Icons.Default.Casino,
-            iconTint = Color(0xFF4CAF50),
-            backgroundColor = Color(0xFFE8F5E9)
-        ),
-        DailyTool(
-            title = "Health Stats",
-            description = "Body Mass Index and hydration tracking",
-            icon = Icons.Default.Favorite,
-            iconTint = Color(0xFFE53935),
-            backgroundColor = Color(0xFFFFEBEE)
+            iconTint = Color(0xFF4CAF50)
         )
     )
 }
@@ -206,7 +228,15 @@ fun getDailyTools(): List<DailyTool> {
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun EverydayScreenPreview() {
-    MaterialTheme {
+    UtilityKitTheme(darkTheme = false) {
+        EverydayScreen()
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true, name = "Everyday Dark")
+@Composable
+fun EverydayScreenDarkPreview() {
+    UtilityKitTheme(darkTheme = true) {
         EverydayScreen()
     }
 }

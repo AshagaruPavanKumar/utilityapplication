@@ -2,7 +2,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.FLASHLIGHT" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.flash" android:required="false" />
+
     <application
+        android:name=".UtilityApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -11,6 +21,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.UtilityApplication"
+        android:localeConfig="@xml/locales_config"
         tools:targetApi="31">
 
         <activity
@@ -26,7 +37,6 @@
         </activity>
         <activity
             android:name=".com.feature.everday.pres.ui.act.UnitConverterActivity"
-            android:name="com.utilityapplication.com.feature.everday.pres.ui.act.UnitConverterActivity"
             android:exported="false"
             android:label="@string/unit_converter_title"
             android:theme="@style/Theme.UtilityApplication" />
@@ -40,6 +50,39 @@
             android:exported="false"
             android:label="@string/age_calculator_title"
             android:theme="@style/Theme.UtilityApplication" />
+        <activity
+            android:name=".com.feature.emergency.pres.ui.act.MedicalCardLockActivity"
+            android:exported="true"
+            android:label="@string/medical_card_title"
+            android:showOnLockScreen="true"
+            android:turnScreenOn="true"
+            android:theme="@style/Theme.UtilityApplication" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <receiver
+            android:name=".com.feature.emergency.widget.MedicalCardWidget"
+            android:exported="true"
+            android:label="@string/medical_card_title">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/medical_card_widget_info" />
+        </receiver>
+
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-4834602109793424~6381945596" />
     </application>
 
 </manifest>

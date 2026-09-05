@@ -2,7 +2,7 @@ package com.utilityapplication.com.feature.home.pres.ui.act
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -17,9 +17,9 @@ import androidx.core.util.Consumer
 import com.utilityapplication.com.navigation.AppNavigation
 import com.utilityapplication.com.navigation.MainNavigator
 import com.utilityapplication.com.navigation.Routes
-import com.utilityapplication.com.theme.UtilityKitTheme
+import com.utilityapplication.com.theme.UtilityAppTheme
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -35,7 +35,7 @@ class MainActivity : ComponentActivity() {
                 onDispose { removeOnNewIntentListener(listener) }
             }
 
-            UtilityKitTheme {
+            UtilityAppTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
